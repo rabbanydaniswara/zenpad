@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZenPad | Auto-Saving Notes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-sidebar: #181818;
+            --bg-main: #1f1f1f;
+            --text-primary: #e0e0e0;
+            --text-secondary: #858585;
+            --accent: #4caf50;
+            --accent-hover: #43a047;
+            --danger: #e57373;
+            --item-hover: #2a2d2e;
+            --border: #333;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        aside {
+            width: 280px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+        .add-btn:hover { background-color: var(--accent-hover); }
+
+        .notes-list {
+            list-style: none;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .note-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #252525;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .note-item:hover { background-color: var(--item-hover); }
+        
+        .note-item.active { 
+            background-color: #2d2d30; 
+            border-left: 3px solid var(--accent); 
+        }
+
+        .note-info { 
+            overflow: hidden; 
+            flex-grow: 1; 
+            margin-right: 10px;
+        }
+        
+        .note-title { 
+            display: block; 
+            font-weight: 500; 
+            font-size: 0.95rem;
+            margin-bottom: 4px; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            color: #fff;
+        }
+        
+        .note-preview { 
+            display: block; 
+            font-size: 0.8rem; 
+            color: var(--text-secondary); 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+        }
+
+        /* Delete Button Fixed */
+        .delete-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            opacity: 0; 
+            transition: opacity 0.2s, color 0.2s;
+        }
+
+        .note-item:hover .delete-btn,
+        .note-item.active .delete-btn { 
+            opacity: 1; /* Visible on hover AND when active (for mobile) */
+        }
+        
+        .delete-btn:hover { color: var(--danger); background: rgba(229, 115, 115, 0.1); }
+
+        /* --- MAIN EDITOR --- */
+        main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 40px 60px;
+            max-width: 100%;
+        }
+
+        .editor-title {
+            background: transparent;
+            border: none;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+        }
+        .editor-title::placeholder { color: #555; }
+
+        .editor-body {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            resize: none;
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: #d0d0d0;
+            font-family: 'Inter', sans-serif;
+        }
+        .editor-body::placeholder { color: #444; }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+        .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            
+            aside {
+                width: 100%;
+                height: 35vh; /* Sidebar takes top 35% on mobile */
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+            
+            main {
+                padding: 20px;
+                height: 65vh;
+            }
+
+            .editor-title { font-size: 1.8rem; }
+            .add-btn { padding: 8px; }
+            .sidebar-header { padding: 10px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <aside>
+        <div class="sidebar-header">
+            <button class="add-btn" onclick="addNewNote()">
+                <span>+</span> Create New Note
+            </button>
+        </div>
+        <ul class="notes-list" id="notesList">
+            </ul>
+    </aside>
+
+    <main id="mainEditor">
+        <div class="empty-state">
+            <div class="empty-icon">📝</div>
+            <p>Select a note to view<br>or create a new one.</p>
+        </div>
+    </main>
+
+    <script>
+        // --- APP STATE ---
+        let notes = [];
+        let activeNoteId = null;
+
+        const notesListEl = document.getElementById('notesList');
+        const mainEditorEl = document.getElementById('mainEditor');
+
+        // --- INITIALIZATION ---
+        function init() {
+            try {
+                const savedNotes = localStorage.getItem('zenpad_notes');
+                notes = savedNotes ? JSON.parse(savedNotes) : [];
+                
+                // Load last active note
+                const savedActiveId = localStorage.getItem('zenpad_active_id');
+                if (savedActiveId) activeNoteId = parseInt(savedActiveId);
+
+            } catch (e) {
+                console.error("Data corrupted, resetting.", e);
+                notes = [];
+            }
+
+            if (notes.length === 0) {
+                addNewNote(false); // Create default note without focusing
+            }
+
+            renderNotesList();
+            
+            // If we have a valid active note, open it
+            if (activeNoteId && notes.find(n => n.id === activeNoteId)) {
+                renderEditor(activeNoteId);
+            } else {
+                activeNoteId = null; // Reset if ID not found
+            }
+        }
+
+        // --- RENDERING ---
+        function renderNotesList() {
+            notesListEl.innerHTML = '';
+            
+            // Sort by ID (newest created at bottom? or top? Let's do newest top)
+            const sortedNotes = notes.sort((a, b) => b.id - a.id);
+
+            sortedNotes.forEach(note => {
+                const li = document.createElement('li');
+                li.className = `note-item ${note.id === activeNoteId ? 'active' : ''}`;
+                li.dataset.noteId = note.id; // Store ID in DOM for easy selection
+                
+                li.innerHTML = `
+                    <div class="note-info">
+                        <span class="note-title">${escapeHtml(note.title) || 'Untitled Note'}</span>
+                        <span class="note-preview">${escapeHtml(note.body.substring(0, 40).replace(/\n/g, ' ')) || 'Empty...'}</span>
+                    </div>
+                    <button class="delete-btn" title="Delete">&times;</button>
+                `;
+
+                // Click Handler (Select)
+                li.addEventListener('click', (e) => {
+                    // Ignore if clicking delete button
+                    if(e.target.closest('.delete-btn')) return; 
+                    
+                    setActiveNote(note.id);
+                });
+
+                // Delete Handler
+                const delBtn = li.querySelector('.delete-btn');
+                delBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (confirm('Are you sure you want to delete this note?')) {
+                        deleteNote(note.id);
+                    }
+                });
+
+                notesListEl.appendChild(li);
+            });
+        }
+
+        function renderEditor(id) {
+            const note = notes.find(n => n.id === id);
+            if (!note) return;
+
+            mainEditorEl.innerHTML = `
+                <input type="text" class="editor-title" id="noteTitle" placeholder="Note Title" value="${escapeHtml(note.title)}">
+                <textarea class="editor-body" id="noteBody" placeholder="Start typing your note...">${escapeHtml(note.body)}</textarea>
+            `;
+
+            // --- EVENT LISTENERS (Optimized) ---
+            const titleInput = document.getElementById('noteTitle');
+            const bodyInput = document.getElementById('noteBody');
+
+            titleInput.addEventListener('input', (e) => {
+                updateNote(id, { title: e.target.value });
+            });
+
+            bodyInput.addEventListener('input', (e) => {
+                updateNote(id, { body: e.target.value });
+            });
+            
+            titleInput.focus(); // Optional: Focus title when opening? Maybe remove if annoying
+        }
+
+        // --- ACTIONS ---
+        
+        function setActiveNote(id) {
+            activeNoteId = id;
+            localStorage.setItem('zenpad_active_id', id);
+            renderNotesList(); // Re-render list to update 'active' class highlight
+            renderEditor(id);
+        }
+
+        function addNewNote(shouldFocus = true) {
+            const newNote = {
+                id: Date.now(),
+                title: "",
+                body: ""
+            };
+            notes.unshift(newNote); // Add to top
+            saveToStorage();
+            
+            if (shouldFocus) {
+                setActiveNote(newNote.id);
+            } else {
+                renderNotesList();
+            }
+        }
+
+        function updateNote(id, updatedFields) {
+            const note = notes.find(n => n.id === id);
+            if (!note) return;
+
+            // Update data model
+            Object.assign(note, updatedFields);
+            saveToStorage();
+
+            // --- SMART UI UPDATE (No lag) ---
+            // Instead of re-rendering the whole list, we just update the text of the specific item
+            const sidebarItem = document.querySelector(`li[data-note-id="${id}"]`);
+            if (sidebarItem) {
+                if (updatedFields.title !== undefined) {
+                    sidebarItem.querySelector('.note-title').textContent = updatedFields.title || 'Untitled Note';
+                }
+                if (updatedFields.body !== undefined) {
+                    sidebarItem.querySelector('.note-preview').textContent = updatedFields.body.substring(0, 40).replace(/\n/g, ' ') || 'Empty...';
+                }
+            }
+        }
+
+        function deleteNote(id) {
+            notes = notes.filter(n => n.id !== id);
+            saveToStorage();
+
+            if (activeNoteId === id) {
+                activeNoteId = null;
+                localStorage.removeItem('zenpad_active_id');
+                mainEditorEl.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🗑️</div>
+                        <p>Note deleted.</p>
+                    </div>`;
+            }
+            renderNotesList();
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('zenpad_notes', JSON.stringify(notes));
+        }
+
+        // Helper to prevent HTML injection
+        function escapeHtml(text) {
+            if (!text) return "";
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Start App
+        init();
+
+    </script>
+</body>
+</html>
