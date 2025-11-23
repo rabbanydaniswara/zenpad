@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZenPad | Auto-Saving Notes</title>
+    <title>ZenPad | Secure Storage</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -18,6 +18,7 @@
             --danger: #e57373;
             --item-hover: #2a2d2e;
             --border: #333;
+            --btn-secondary: #333;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
@@ -39,7 +40,7 @@
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
-            transition: transform 0.3s ease;
+            z-index: 10;
         }
 
         .sidebar-header {
@@ -79,43 +80,14 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: relative;
         }
-
         .note-item:hover { background-color: var(--item-hover); }
-        
-        .note-item.active { 
-            background-color: #2d2d30; 
-            border-left: 3px solid var(--accent); 
-        }
+        .note-item.active { background-color: #2d2d30; border-left: 3px solid var(--accent); }
 
-        .note-info { 
-            overflow: hidden; 
-            flex-grow: 1; 
-            margin-right: 10px;
-        }
-        
-        .note-title { 
-            display: block; 
-            font-weight: 500; 
-            font-size: 0.95rem;
-            margin-bottom: 4px; 
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            color: #fff;
-        }
-        
-        .note-preview { 
-            display: block; 
-            font-size: 0.8rem; 
-            color: var(--text-secondary); 
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-        }
+        .note-info { overflow: hidden; flex-grow: 1; margin-right: 10px; }
+        .note-title { display: block; font-weight: 500; font-size: 0.95rem; margin-bottom: 4px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .note-preview { display: block; font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Delete Button Fixed */
         .delete-btn {
             background: transparent;
             border: none;
@@ -123,17 +95,33 @@
             font-size: 1.2rem;
             cursor: pointer;
             padding: 5px;
-            border-radius: 4px;
             opacity: 0; 
-            transition: opacity 0.2s, color 0.2s;
+            transition: opacity 0.2s;
         }
+        .note-item:hover .delete-btn, .note-item.active .delete-btn { opacity: 1; }
+        .delete-btn:hover { color: var(--danger); }
 
-        .note-item:hover .delete-btn,
-        .note-item.active .delete-btn { 
-            opacity: 1; /* Visible on hover AND when active (for mobile) */
+        /* --- DATA MANAGEMENT (NEW) --- */
+        .sidebar-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
         }
         
-        .delete-btn:hover { color: var(--danger); background: rgba(229, 115, 115, 0.1); }
+        .data-btn {
+            flex: 1;
+            padding: 8px;
+            background-color: var(--btn-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .data-btn:hover { background-color: #444; color: #fff; }
 
         /* --- MAIN EDITOR --- */
         main {
@@ -141,7 +129,6 @@
             display: flex;
             flex-direction: column;
             padding: 40px 60px;
-            max-width: 100%;
         }
 
         .editor-title {
@@ -152,10 +139,8 @@
             color: var(--text-primary);
             margin-bottom: 20px;
             width: 100%;
-            font-family: 'Inter', sans-serif;
         }
-        .editor-title::placeholder { color: #555; }
-
+        
         .editor-body {
             flex-grow: 1;
             background: transparent;
@@ -164,46 +149,21 @@
             font-size: 1.1rem;
             line-height: 1.7;
             color: #d0d0d0;
-            font-family: 'Inter', sans-serif;
         }
-        .editor-body::placeholder { color: #444; }
 
-        /* Scrollbar Styling */
+        /* Hidden File Input */
+        #fileInput { display: none; }
+
+        /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
 
-        /* Empty State */
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-            color: var(--text-secondary);
-            text-align: center;
-        }
-        .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
-
-        /* --- RESPONSIVE --- */
         @media (max-width: 768px) {
             body { flex-direction: column; }
-            
-            aside {
-                width: 100%;
-                height: 35vh; /* Sidebar takes top 35% on mobile */
-                border-right: none;
-                border-bottom: 1px solid var(--border);
-            }
-            
-            main {
-                padding: 20px;
-                height: 65vh;
-            }
-
+            aside { width: 100%; height: 40vh; border-right: none; border-bottom: 1px solid var(--border); }
+            main { padding: 20px; height: 60vh; }
             .editor-title { font-size: 1.8rem; }
-            .add-btn { padding: 8px; }
-            .sidebar-header { padding: 10px 20px; }
         }
     </style>
 </head>
@@ -211,203 +171,180 @@
 
     <aside>
         <div class="sidebar-header">
-            <button class="add-btn" onclick="addNewNote()">
-                <span>+</span> Create New Note
-            </button>
+            <button class="add-btn" onclick="addNewNote()">+ New Note</button>
         </div>
-        <ul class="notes-list" id="notesList">
-            </ul>
+        <ul class="notes-list" id="notesList"></ul>
+        
+        <div class="sidebar-footer">
+            <button class="data-btn" onclick="exportData()" title="Download Backup">💾 Save File</button>
+            <button class="data-btn" onclick="triggerImport()" title="Restore from Backup">📂 Load File</button>
+            <input type="file" id="fileInput" accept=".json" onchange="importData(this)">
+        </div>
     </aside>
 
     <main id="mainEditor">
-        <div class="empty-state">
-            <div class="empty-icon">📝</div>
-            <p>Select a note to view<br>or create a new one.</p>
+        <div style="display:flex; height:100%; justify-content:center; align-items:center; color:#555;">
+            Select a note or Load a File
         </div>
     </main>
 
     <script>
-        // --- APP STATE ---
+        // --- LOGIC ---
         let notes = [];
         let activeNoteId = null;
 
         const notesListEl = document.getElementById('notesList');
         const mainEditorEl = document.getElementById('mainEditor');
 
-        // --- INITIALIZATION ---
+        // 1. Initialize
         function init() {
-            try {
-                const savedNotes = localStorage.getItem('zenpad_notes');
-                notes = savedNotes ? JSON.parse(savedNotes) : [];
-                
-                // Load last active note
-                const savedActiveId = localStorage.getItem('zenpad_active_id');
-                if (savedActiveId) activeNoteId = parseInt(savedActiveId);
-
-            } catch (e) {
-                console.error("Data corrupted, resetting.", e);
-                notes = [];
-            }
-
-            if (notes.length === 0) {
-                addNewNote(false); // Create default note without focusing
-            }
-
-            renderNotesList();
-            
-            // If we have a valid active note, open it
-            if (activeNoteId && notes.find(n => n.id === activeNoteId)) {
-                renderEditor(activeNoteId);
+            const savedNotes = localStorage.getItem('zenpad_notes');
+            if (savedNotes) {
+                notes = JSON.parse(savedNotes);
             } else {
-                activeNoteId = null; // Reset if ID not found
+                // Initial welcome note
+                notes = [{
+                    id: Date.now(),
+                    title: "Readme",
+                    body: "Welcome to ZenPad v3.\n\n1. Type anything, it saves to browser memory instantly.\n2. To be 'History Clear Proof', click 'Save File' below.\n3. This downloads a .json file.\n4. If you clear your history, click 'Load File' and select that JSON."
+                }];
+                saveToStorage();
             }
+            renderNotesList();
+            if(notes.length > 0) setActiveNote(notes[0].id);
         }
 
-        // --- RENDERING ---
+        // 2. Render List
         function renderNotesList() {
             notesListEl.innerHTML = '';
-            
-            // Sort by ID (newest created at bottom? or top? Let's do newest top)
-            const sortedNotes = notes.sort((a, b) => b.id - a.id);
-
-            sortedNotes.forEach(note => {
+            notes.sort((a, b) => b.id - a.id).forEach(note => {
                 const li = document.createElement('li');
                 li.className = `note-item ${note.id === activeNoteId ? 'active' : ''}`;
-                li.dataset.noteId = note.id; // Store ID in DOM for easy selection
-                
                 li.innerHTML = `
                     <div class="note-info">
-                        <span class="note-title">${escapeHtml(note.title) || 'Untitled Note'}</span>
-                        <span class="note-preview">${escapeHtml(note.body.substring(0, 40).replace(/\n/g, ' ')) || 'Empty...'}</span>
+                        <span class="note-title">${escapeHtml(note.title) || 'Untitled'}</span>
+                        <span class="note-preview">${escapeHtml(note.body.substring(0, 30))}...</span>
                     </div>
-                    <button class="delete-btn" title="Delete">&times;</button>
+                    <button class="delete-btn" onclick="deleteNote(${note.id}, event)">&times;</button>
                 `;
-
-                // Click Handler (Select)
-                li.addEventListener('click', (e) => {
-                    // Ignore if clicking delete button
-                    if(e.target.closest('.delete-btn')) return; 
-                    
-                    setActiveNote(note.id);
-                });
-
-                // Delete Handler
-                const delBtn = li.querySelector('.delete-btn');
-                delBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if (confirm('Are you sure you want to delete this note?')) {
-                        deleteNote(note.id);
-                    }
-                });
-
+                li.onclick = () => setActiveNote(note.id);
                 notesListEl.appendChild(li);
             });
         }
 
+        // 3. Render Editor
         function renderEditor(id) {
             const note = notes.find(n => n.id === id);
             if (!note) return;
 
             mainEditorEl.innerHTML = `
-                <input type="text" class="editor-title" id="noteTitle" placeholder="Note Title" value="${escapeHtml(note.title)}">
-                <textarea class="editor-body" id="noteBody" placeholder="Start typing your note...">${escapeHtml(note.body)}</textarea>
+                <input type="text" class="editor-title" id="noteTitle" value="${escapeHtml(note.title)}" placeholder="Title">
+                <textarea class="editor-body" id="noteBody" placeholder="Start typing...">${escapeHtml(note.body)}</textarea>
             `;
 
-            // --- EVENT LISTENERS (Optimized) ---
-            const titleInput = document.getElementById('noteTitle');
-            const bodyInput = document.getElementById('noteBody');
-
-            titleInput.addEventListener('input', (e) => {
-                updateNote(id, { title: e.target.value });
-            });
-
-            bodyInput.addEventListener('input', (e) => {
-                updateNote(id, { body: e.target.value });
-            });
-            
-            titleInput.focus(); // Optional: Focus title when opening? Maybe remove if annoying
+            // Listeners
+            document.getElementById('noteTitle').addEventListener('input', (e) => updateNote(id, {title: e.target.value}));
+            document.getElementById('noteBody').addEventListener('input', (e) => updateNote(id, {body: e.target.value}));
         }
 
-        // --- ACTIONS ---
-        
+        // 4. CRUD Operations
         function setActiveNote(id) {
             activeNoteId = id;
-            localStorage.setItem('zenpad_active_id', id);
-            renderNotesList(); // Re-render list to update 'active' class highlight
+            renderNotesList();
             renderEditor(id);
         }
 
-        function addNewNote(shouldFocus = true) {
-            const newNote = {
-                id: Date.now(),
-                title: "",
-                body: ""
-            };
-            notes.unshift(newNote); // Add to top
+        function addNewNote() {
+            const newNote = { id: Date.now(), title: "", body: "" };
+            notes.unshift(newNote);
             saveToStorage();
-            
-            if (shouldFocus) {
-                setActiveNote(newNote.id);
-            } else {
-                renderNotesList();
-            }
+            setActiveNote(newNote.id);
         }
 
-        function updateNote(id, updatedFields) {
+        function updateNote(id, fields) {
             const note = notes.find(n => n.id === id);
-            if (!note) return;
-
-            // Update data model
-            Object.assign(note, updatedFields);
+            Object.assign(note, fields);
             saveToStorage();
-
-            // --- SMART UI UPDATE (No lag) ---
-            // Instead of re-rendering the whole list, we just update the text of the specific item
-            const sidebarItem = document.querySelector(`li[data-note-id="${id}"]`);
-            if (sidebarItem) {
-                if (updatedFields.title !== undefined) {
-                    sidebarItem.querySelector('.note-title').textContent = updatedFields.title || 'Untitled Note';
-                }
-                if (updatedFields.body !== undefined) {
-                    sidebarItem.querySelector('.note-preview').textContent = updatedFields.body.substring(0, 40).replace(/\n/g, ' ') || 'Empty...';
-                }
+            // Live update sidebar text without full re-render
+            const li = Array.from(notesListEl.children).find(item => item.innerHTML.includes(`deleteNote(${id}`));
+            if(li) {
+                if(fields.title !== undefined) li.querySelector('.note-title').textContent = fields.title || 'Untitled';
+                if(fields.body !== undefined) li.querySelector('.note-preview').textContent = fields.body.substring(0, 30) + '...';
             }
         }
 
-        function deleteNote(id) {
-            notes = notes.filter(n => n.id !== id);
-            saveToStorage();
-
-            if (activeNoteId === id) {
+        function deleteNote(id, event) {
+            event.stopPropagation();
+            if(confirm('Delete this note?')) {
+                notes = notes.filter(n => n.id !== id);
+                saveToStorage();
                 activeNoteId = null;
-                localStorage.removeItem('zenpad_active_id');
-                mainEditorEl.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">🗑️</div>
-                        <p>Note deleted.</p>
-                    </div>`;
+                renderNotesList();
+                mainEditorEl.innerHTML = '';
             }
-            renderNotesList();
         }
 
         function saveToStorage() {
             localStorage.setItem('zenpad_notes', JSON.stringify(notes));
         }
 
-        // Helper to prevent HTML injection
-        function escapeHtml(text) {
-            if (!text) return "";
-            return text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+        // --- FILE PERSISTENCE (THE "BROWSER PROOF" PART) ---
+
+        // A. Export (Save to File)
+        function exportData() {
+            const dataStr = JSON.stringify(notes, null, 2); // Pretty print JSON
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            
+            // Create a fake link to trigger download
+            const a = document.createElement('a');
+            a.href = url;
+            const date = new Date().toISOString().slice(0, 10);
+            a.download = `zenpad_backup_${date}.json`; 
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
-        // Start App
-        init();
+        // B. Import (Load from File)
+        function triggerImport() {
+            document.getElementById('fileInput').click();
+        }
 
+        function importData(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedNotes = JSON.parse(e.target.result);
+                    if (Array.isArray(importedNotes)) {
+                        if(confirm("This will replace current notes with the backup. Continue?")) {
+                            notes = importedNotes;
+                            saveToStorage(); // Save to localStorage immediately
+                            init(); // Reload UI
+                            alert("Backup restored successfully!");
+                        }
+                    } else {
+                        alert("Invalid file format.");
+                    }
+                } catch (err) {
+                    alert("Error reading file.");
+                }
+            };
+            reader.readAsText(file);
+            // Reset input so you can load the same file again if needed
+            input.value = ''; 
+        }
+
+        function escapeHtml(text) {
+             if (!text) return "";
+             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        init();
     </script>
 </body>
 </html>
