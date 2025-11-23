@@ -1,6 +1,6 @@
 // src/App.jsx
 import React, { useEffect, useState, useRef } from "react";
-import { auth, db } from "./firebaseconfig";
+import { auth, db } from "./firebaseConfig";
 import {
   signInAnonymously,
   onAuthStateChanged
